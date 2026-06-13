@@ -1,0 +1,174 @@
+#  🔥python- FULL OOP PROJECT CODE
+import json
+import os
+
+
+class BankAccount:
+
+    def __init__(self, name, pin, balance=0):
+
+        self.name = name
+        self.__pin = pin
+        self.__balance = balance
+        self.transactions = []
+
+
+    # ---------------- SECURITY CHECK ----------------
+    def __check_pin(self, pin):
+        return pin == self.__pin
+
+
+    # ---------------- DEPOSIT ----------------
+    def deposit(self, amount):
+
+        if amount > 0:
+            self.__balance += amount
+            self.transactions.append(f"Deposited {amount}")
+            print(f"{amount} টাকা জমা হয়েছে")
+        else:
+            print("Invalid amount")
+
+
+    # ---------------- WITHDRAW ----------------
+    def withdraw(self, amount, pin):
+
+        if not self.__check_pin(pin):
+            print("Wrong PIN")
+            return
+
+        if amount > self.__balance:
+            print("Insufficient balance")
+            return
+
+        self.__balance -= amount
+        self.transactions.append(f"Withdraw {amount}")
+        print(f"{amount} টাকা উত্তোলন হয়েছে")
+
+
+    # ---------------- BALANCE ----------------
+    def show_balance(self, pin):
+
+        if self.__check_pin(pin):
+            print("Current Balance:", self.__balance)
+        else:
+            print("Incorrect PIN")
+
+
+    # ---------------- CHANGE PIN ----------------
+    def change_pin(self, old_pin, new_pin):
+
+        if self.__check_pin(old_pin):
+            self.__pin = new_pin
+            print("PIN changed successfully")
+        else:
+            print("Wrong old PIN")
+
+
+    # ---------------- TRANSACTIONS ----------------
+    def show_transactions(self, pin):
+
+        if self.__check_pin(pin):
+            print("\nTransaction History:")
+            for t in self.transactions:
+                print("-", t)
+        else:
+            print("Incorrect PIN")
+
+
+    # ---------------- SAVE TO FILE ----------------
+    def save_data(self):
+
+        data = {
+            "name": self.name,
+            "pin": self.__pin,
+            "balance": self.__balance,
+            "transactions": self.transactions
+        }
+
+        with open(self.name + ".json", "w") as f:
+            json.dump(data, f)
+
+
+    # ---------------- LOAD FROM FILE ----------------
+    @staticmethod
+    def load_account(filename):
+
+        if not os.path.exists(filename):
+            print("Account not found")
+            return None
+
+        with open(filename, "r") as f:
+            data = json.load(f)
+
+        acc = BankAccount(data["name"], data["pin"], data["balance"])
+        acc.transactions = data["transactions"]
+
+        return acc
+
+
+# ================= MAIN SYSTEM ================= #
+
+print("=== SMART BANK SYSTEM ===")
+
+choice = input("1. Create Account\n2. Load Account\nChoose: ")
+
+if choice == "1":
+
+    name = input("Enter name: ")
+    pin = int(input("Set PIN: "))
+    balance = int(input("Initial deposit: "))
+
+    acc = BankAccount(name, pin, balance)
+
+    print("\nAccount Created Successfully!\n")
+
+else:
+
+    filename = input("Enter filename (name.json): ")
+    acc = BankAccount.load_account(filename)
+
+    if acc is None:
+        exit()
+
+
+while True:
+
+    print("\n===== MENU =====")
+    print("1. Deposit")
+    print("2. Withdraw")
+    print("3. Check Balance")
+    print("4. Change PIN")
+    print("5. Transactions")
+    print("6. Save & Exit")
+
+    option = input("Choose: ")
+
+    if option == "1":
+        amount = int(input("Enter amount: "))
+        acc.deposit(amount)
+
+    elif option == "2":
+        amount = int(input("Enter amount: "))
+        pin = int(input("Enter PIN: "))
+        acc.withdraw(amount, pin)
+
+    elif option == "3":
+        pin = int(input("Enter PIN: "))
+        acc.show_balance(pin)
+
+    elif option == "4":
+        old = int(input("Old PIN: "))
+        new = int(input("New PIN: "))
+        acc.change_pin(old, new)
+
+    elif option == "5":
+        pin = int(input("Enter PIN: "))
+        acc.show_transactions(pin)
+
+    elif option == "6":
+        acc.save_data()
+        print("Data saved. Goodbye!")
+        break
+
+    else:
+        print("Invalid option")
